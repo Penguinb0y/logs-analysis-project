@@ -1,36 +1,42 @@
-# "Python Code" for news-analysis-project that
-# communicates with the newsdata.sql database
-
+#!/usr/bin/env python
+#
+# code outputs: top viewed articles, authors, and error request percentages
+# from the news database using psql queries
 
 import psycopg2
 
-# define database
 DBNAME = "news"
 
 
-# Return output of the top viewed articles
+def execute_query(query):
+    """Takes query statement as parameter and reutrns results"""
+    try:
+        db = psycopg2.connect(database=DBNAME)
+        c = db.cursor()
+        c.execute(query)
+        results = c.fetchall()
+        db.close()
+        return results
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+
+
 def top_three_articles():
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
+    """Return output of the top viewed articles"""
     print("\nThe top three most viewed articles are: \n")
     query = """
         select articles_views.title, articles_views.views
         from articles_views
         limit 3;
         """
-    c.execute(query)
-    results = c.fetchall()
-    # Reformat print output
-    for results in results[:3]:
-        print(" \"{:}\" " " -- {:} views\n".format(results[0], results[1]))
-    db.close()
+    results = execute_query(query)
+    for result in results:
+        print("\t\"{:}\" " " -- {:} views\n".format(result[0], result[1]))
     return None
 
 
-# Return output of the top viewed authors
 def top_three_authors():
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
+    """Return output of the top viewed authors"""
     print("\nThe top three most viewed authors are: \n")
     query = """
         select max(authors.name) as author,
@@ -41,37 +47,30 @@ def top_three_authors():
         group by authors.id
         limit 3;
         """
-    c.execute(query)
-    results = c.fetchall()
-    # Reformat print output
-    for results in results[:3]:
-        print("{:} -- {:} total views\n".format(results[0], results[1]))
-    db.close()
+    results = execute_query(query)
+    for result in results:
+        print("\t{:} -- {:} total views\n".format(result[0], result[1]))
     return None
 
 
-# Return output of the error percentage above one percent
 def error_percentages():
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
+    """Return output of the error percentage above one percent"""
     print("\nThe day(s) where more than 1% of requests lead to errors were:\n")
     query = """
-        select date, error_percentage
-        from error_request_percentages
+        select * from error_percentages
         where error_percentage >= 1;
         """
-    c.execute(query)
-    results = c.fetchall()
-    # Reformat print output
-    for results in results[:3]:
-        print("{:} -- {:}%\n".format(results[0], results[1]))
-    db.close()
+    results = execute_query(query)
+    for result in results:
+        print("\t{:} -- {:}%\n".format(result[0], result[1]))
     return None
 
 
-# Run functions
-top_three_articles()
-print("-----------------------------------------------\n")
-top_three_authors()
-print("-----------------------------------------------\n")
-error_percentages()
+def main():
+    """Generate the reports!"""
+    top_three_articles()
+    top_three_authors()
+    error_percentages()
+
+if __name__ == '__main__':
+    main()
