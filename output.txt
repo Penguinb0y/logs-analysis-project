@@ -19,5 +19,5 @@ The top three most viewed authors are:
 
 The day(s) where more than 1% of requests lead to errors were:
 
-	2016-07-17 -- 2.26%
+	July 17, 2016 -- 2.26%
 
